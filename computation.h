@@ -100,6 +100,8 @@ extern int COUNT;
 
 //void test();
 
+void outputNodeIndexforElem();
+
 void genMesh(
 	int &ND_N, int &ELM_N,
 	Node2D* &pND, Element2D* &pELM,

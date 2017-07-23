@@ -79,9 +79,23 @@ void releaseMeshData()
 	delete[] pELM;
 }
 
+void outputNodeIndexforElem()
+{
+    ofstream outFile("./outfiles/index.bin", ios::binary);
+    outFile.write((char*)(&ELM_N), sizeof(int));
+    for(int i=0; i<ELM_N; ++i)
+    {
+        for(int j=0; j<4; ++j)
+        {
+            outFile.write((char*)(pELM[i].index+j), sizeof(int));
+        }
+    }
+    outFile.close();
+}
+
 void outputMeshData()
 {
-    ofstream outFile("MeshData.dat");
+    ofstream outFile("./outfiles/meshData.dat");
 
     outFile << scientific;    
     outFile << "*NODE" << endl;

@@ -14,6 +14,8 @@ int main()
     // initialize mesh data
     initMeshData();
 
+    outputNodeIndexforElem();
+
     CT = 0.0; // current time
     DT = computeDTFromElementSize();
 
