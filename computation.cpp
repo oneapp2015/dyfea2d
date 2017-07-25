@@ -70,8 +70,9 @@ void releaseMeshData()
 void outputNodeIndexforElem()
 {
     ofstream outFile("./outfiles/index.bin", ios::binary);
+    outFile.write((char*)(&OUT_INTERVAL), sizeof(int));
     outFile.write((char*)(&ND_N), sizeof(int));
-    outFile.write((char*)(&ELM_N), sizeof(int));
+    outFile.write((char*)(&ELM_N), sizeof(int));    
     for(int i=0; i<ELM_N; ++i)
     {
         for(int j=0; j<4; ++j)
