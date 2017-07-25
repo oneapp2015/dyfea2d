@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <strstream>
 #include "computation.h"
 
 using namespace std;
@@ -69,6 +70,7 @@ void releaseMeshData()
 void outputNodeIndexforElem()
 {
     ofstream outFile("./outfiles/index.bin", ios::binary);
+    outFile.write((char*)(&ND_N), sizeof(int));
     outFile.write((char*)(&ELM_N), sizeof(int));
     for(int i=0; i<ELM_N; ++i)
     {
@@ -82,6 +84,27 @@ void outputNodeIndexforElem()
 
 void outputState(int out_index)
 {
+    strstream filename;	
+	filename << "./outfiles/state";
+	
+	filename.width(2);
+	filename.fill('0');
+	filename << out_index << ".bin" << '\0';
+
+    ofstream outFile;
+	outFile.open( filename.str(), ios::binary);
+
+    for(int j=0; j<ND_N; ++j)
+    {
+        outFile.write((char*)(pND[j].x), sizeof(double));
+        outFile.write((char*)(pND[j].x + 1), sizeof(double));       
+    }
+    for(int i=0; i<ELM_N; ++i)
+    {
+        outFile.write((char*)(&(pELM[i].p)), sizeof(double));
+    }
+
+    outFile.close();
 }
 
 void outputEnergy()
