@@ -17,20 +17,21 @@ int ELM_N; // size of pELM array
 // SOLV_TYPE:
 // 0 ==> flyer-target impact
 // 1 ==> Taylor bar impact
-// 2 ==> blast wave
+// 2 ==> other
 const int SOLV_TYPE = 0;
 // GEO_TYPE:
 // 0 ==> plain strain
 // 1 ==> cylinder symmetry
-const int GEO_TYPE = 0;
+const int GEO_TYPE = 1;
 
 // global parameters for SOLV_TYPE ==> 0
 // geometry
-const double L1_START = -3.0; // cm
+//const double L1_START = -3.0; // cm
+const double L1_START = 0.0;
 const double L1_END = 3.0; // cm
 const double TARGET_L2_START = 0.0; // cm
-const double INTER_L2 = 0.3; // cm
-const double FLYER_L2_END = 0.4; // cm
+const double INTER_L2 = 3.0; // cm
+const double FLYER_L2_END = 4.0; // cm
 // mesh generation control
 const int TARGET_N2 = 60;
 const int FLYER_N2 = 20;
@@ -51,27 +52,13 @@ double TEN = 2.0e-2; // 10^2 GPa
 // time marching parameters
 double TT = 4.0; // us
 double CT, DT;
-double DT_RATIO = 0.8;
+double DT_RATIO = 0.2;
 int COUNT;
 
-/*
-void test()
-{
-    
-    genMesh(
-        ND_N, ELM_N, pND, pELM,
-        TARGET_L2_START, INTER_L2, FLYER_L2_END,
-        L1_START, L1_END,
-        TARGET_N2, FLYER_N2, N1
-        );
-    
-    genMesh1(ND_N, ELM_N, pND, pELM,
-        TARGET_L2_START, INTER_L2,
-        L1_START, L1_END,
-        TARGET_N2, N1
-        );
-}
-*/
+// output control
+int OUT_INTERVAL = 10;
+int DISP_INTERVAL = 20;
+double INIT_ENERGY;
 
 void releaseMeshData()
 {
@@ -91,6 +78,55 @@ void outputNodeIndexforElem()
         }
     }
     outFile.close();
+}
+
+void outputState(int out_index)
+{
+}
+
+void outputEnergy()
+{
+    cout << endl;
+    cout << "=================================" << endl;
+    cout << "initial energy = " << INIT_ENERGY << endl;
+    double te = computeTotalEnergy();
+    cout << "final energy = " << te << endl;
+    cout << "energy diff = " << setw(8);
+    cout << 100.0*(te - INIT_ENERGY) / INIT_ENERGY;
+    cout << " %" << endl;
+    cout << "=================================" << endl;
+}
+
+double computeTotalEnergy()
+{
+    int index;
+    double mass, aver_u0, aver_u1, v2;
+    double inter_energy = 0.0;
+    double kinetic_energy = 0.0;
+    for(int i=0; i<ELM_N; ++i)
+    {
+        mass = pELM[i].mass;
+        inter_energy += pELM[i].e*mass;
+
+        aver_u0 = 0.0;
+        aver_u1 = 0.0;
+        for(int j=0; j<4; ++j)
+        {
+            index = pELM[i].index[j];
+            aver_u0 += pND[index].u[0];
+            aver_u1 += pND[index].u[1];
+        }
+        aver_u0 = 0.25*aver_u0;
+        aver_u1 = 0.25*aver_u1;
+        v2 = aver_u0*aver_u0 + aver_u1*aver_u1;
+        kinetic_energy += 0.5*mass*v2;
+    }
+    //cout << "total internal energy = " << inter_energy << endl;
+    //cout << "total kinetic energy = " << kinetic_energy << endl;
+    double total_energy = inter_energy + kinetic_energy;
+    //cout << "total energy = " << total_energy << endl;
+    
+    return total_energy;
 }
 
 void outputMeshData()
@@ -373,6 +409,25 @@ void initMeshData()
 		pELM[i].alive = true;
 		pELM[i].ten = TEN;
 	}
+
+    INIT_ENERGY = computeTotalEnergy();
+
+    /*
+    cout << "********* test mass **********" << endl;
+    double t_mass = 0.0;
+    for(i=0; i<ELM_N; ++i)
+    {
+        t_mass += pELM[i].mass;
+    }
+    cout << "element mass = " << t_mass << endl;
+    
+    t_mass = 0.0;
+    for(j=0; j<ND_N; ++j)
+    {
+        t_mass += pND[j].mass;
+    }
+    cout << "node mass = " << t_mass << endl;
+    */
 }
 
 double computeDTFromElementSize()
@@ -582,7 +637,7 @@ void computeElementSig(int elmNum)
 	dev_eps_rate[1][0] = pELM[elmNum].eps_rate[2];
 	
 	double sd_aver[2][2];
-	ComputeElementSd(sd_aver, dev_eps_rate, elmNum);
+	computeElementSd(sd_aver, dev_eps_rate, elmNum);
 
 	double v_n, v_n1;
 	v_n = 1.0 / pELM[elmNum].rho;		
@@ -599,7 +654,7 @@ void computeElementSig(int elmNum)
 	dv = v_n1 - v_n;
 	
 	double q;
-	q = ComputeElementQ(v_aver, theta_rate, elmNum);
+	q = computeElementQ(v_aver, theta_rate, elmNum);
 
 	double e_n, p_n;
 	e_n = pELM[elmNum].e;
@@ -613,7 +668,7 @@ void computeElementSig(int elmNum)
 	term2 = v_aver * term2 * DT;
 
 	double ea = e_n - term1 + term2;
-	double p = ComputeElementP_GruneisenEOS(ea, v_n1, dv);
+	double p = computeElementP_GruneisenEOS(ea, v_n1, dv);
 	double e = ea - 0.5*p*dv;
 
 	pELM[elmNum].p = p;
@@ -631,7 +686,7 @@ void computeElementSig(int elmNum)
 	}
 }
 
-void ComputeElementSd(
+void computeElementSd(
     double sd_aver[2][2], double dev_eps_rate[2][2], 
     int elmNum
     )
@@ -710,7 +765,7 @@ void ComputeElementSd(
     pELM[elmNum].sd[3] = -(sd_n1[0][0] + sd_n1[1][1]);
 }
 
-double ComputeElementQ(double v_aver, double theta_rate, int elmNum)
+double computeElementQ(double v_aver, double theta_rate, int elmNum)
 {
 	if(theta_rate < 0.0)
 	{
@@ -743,7 +798,7 @@ double ComputeElementQ(double v_aver, double theta_rate, int elmNum)
 	}
 }
 
-double ComputeElementP_GruneisenEOS(double ea, double V, double dV)
+double computeElementP_GruneisenEOS(double ea, double V, double dV)
 {
 	double gama = GAMMA;
 	double rho0 = RHO0;
@@ -1041,6 +1096,6 @@ double getQuadrangleDiagLength(double x[4][2])
     t1 = (x[3][1] - x[1][1])*(x[3][1] - x[1][1]);
     len2 = sqrt(t0 + t1);
 
-    return len1 < len2 ? len1 : len2;
+    return ( (len1 < len2) ? len1 : len2 );
 }
 

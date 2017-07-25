@@ -98,9 +98,15 @@ extern double CT, DT;
 extern double DT_RATIO;
 extern int COUNT;
 
-//void test();
+// output control
+extern int OUT_INTERVAL;
+extern int DISP_INTERVAL;
+extern double INIT_ENERGY;
 
 void outputNodeIndexforElem();
+void outputState(int out_index);
+void outputEnergy();
+double computeTotalEnergy();
 
 void genMesh(
 	int &ND_N, int &ELM_N,
@@ -125,12 +131,12 @@ void computeNode();
 void computeElement();
 void computeElementEpsRotRate(int elmNum);
 void computeElementSig(int elmNum);
-void ComputeElementSd(
+void computeElementSd(
     double sd_aver[2][2], double dev_eps_rate[2][2], 
     int ElmNum
     );
-double ComputeElementQ(double v_aver, double theta_rate, int elmNum);
-double ComputeElementP_GruneisenEOS(double EA, double V, double dV);
+double computeElementQ(double v_aver, double theta_rate, int elmNum);
+double computeElementP_GruneisenEOS(double EA, double V, double dV);
 void computeElementNodeForce(int elmNum);
 
 // matrix and vector tools
