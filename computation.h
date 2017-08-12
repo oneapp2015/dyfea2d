@@ -104,7 +104,7 @@ extern int DISP_INTERVAL;
 extern double INIT_ENERGY;
 
 void outputNodeIndexforElem();
-void outputState(int out_index);
+void outputState(double ct, int out_index);
 void outputEnergy();
 double computeTotalEnergy();
 

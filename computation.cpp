@@ -28,17 +28,17 @@ const int GEO_TYPE = 1;
 // global parameters for SOLV_TYPE ==> 0
 // geometry
 //const double L1_START = -3.0; // cm
-const double L1_START = 0.0;
-const double L1_END = 3.0; // cm
+const double L1_START = 4.0;
+const double L1_END = 4.5; // cm
 const double TARGET_L2_START = 0.0; // cm
-const double INTER_L2 = 3.0; // cm
-const double FLYER_L2_END = 4.0; // cm
+const double INTER_L2 = 2.0; // cm
+const double FLYER_L2_END = 22.0; // cm
 // mesh generation control
-const int TARGET_N2 = 60;
-const int FLYER_N2 = 20;
-const int N1 = 120;
+const int TARGET_N2 = 80;
+const int FLYER_N2 = 200;
+const int N1 = 5;
 // impact velocity
-const double IMPACT_U = -0.05; // cm/us == 10^4 m/s
+const double IMPACT_U = -0.03; // cm/us == 10^4 m/s
 
 // material parameters
 double RHO0 = 2.78; // g/cm3
@@ -51,13 +51,13 @@ double Y0 = 0.7e-2; // 10^2 GPa
 double TEN = 2.0e-2; // 10^2 GPa
 
 // time marching parameters
-double TT = 4.0; // us
+double TT = 10.0; // us
 double CT, DT;
-double DT_RATIO = 0.2;
+double DT_RATIO = 0.1;
 int COUNT;
 
 // output control
-int OUT_INTERVAL = 10;
+int OUT_INTERVAL = 80;
 int DISP_INTERVAL = 20;
 double INIT_ENERGY;
 
@@ -72,7 +72,8 @@ void outputNodeIndexforElem()
     ofstream outFile("./outfiles/index.bin", ios::binary);
     outFile.write((char*)(&OUT_INTERVAL), sizeof(int));
     outFile.write((char*)(&ND_N), sizeof(int));
-    outFile.write((char*)(&ELM_N), sizeof(int));    
+    outFile.write((char*)(&ELM_N), sizeof(int));
+    outFile.write((char*)(&GEO_TYPE), sizeof(int));
     for(int i=0; i<ELM_N; ++i)
     {
         for(int j=0; j<4; ++j)
@@ -83,7 +84,7 @@ void outputNodeIndexforElem()
     outFile.close();
 }
 
-void outputState(int out_index)
+void outputState(double ct, int out_index)
 {
     strstream filename;	
 	filename << "./outfiles/state";
@@ -95,6 +96,7 @@ void outputState(int out_index)
     ofstream outFile;
 	outFile.open( filename.str(), ios::binary);
 
+    outFile.write((char*)(&ct), sizeof(double));
     for(int j=0; j<ND_N; ++j)
     {
         outFile.write((char*)(pND[j].x), sizeof(double));
@@ -855,6 +857,7 @@ void computeElementNodeForce(int elmNum)
 
 	double rho = pELM[elmNum].rho;
     double qh = 0.1;
+    //double qh = 0.9;
 	double c0 = C0;
     double gb[4] = {1.0, -1.0, 1.0, -1.0};
 	

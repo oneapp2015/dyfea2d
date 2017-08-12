@@ -7,18 +7,16 @@ using namespace std;
 int main()
 {
     // generate mesh
-    genMesh(ND_N, ELM_N, pND, pELM,
-        TARGET_L2_START, INTER_L2, FLYER_L2_END,
-        L1_START, L1_END,
-        TARGET_N2, FLYER_N2, N1);
+    //genMesh(ND_N, ELM_N, pND, pELM,
+    //    TARGET_L2_START, INTER_L2, FLYER_L2_END,
+    //    L1_START, L1_END,
+    //    TARGET_N2, FLYER_N2, N1);
     
-    /*
     genMesh1(ND_N, ELM_N, pND, pELM,
         INTER_L2, FLYER_L2_END,
         L1_START, L1_END,
         FLYER_N2, N1
         );
-    */
 
     // initialize mesh data
     initMeshData();
@@ -35,7 +33,7 @@ int main()
     COUNT = 0;
 
     // output initial state
-    outputState(out_index);
+    outputState(CT, out_index);
 
     cout << "let's go!!! " << endl << endl;
     while(CT < TT)
@@ -55,7 +53,7 @@ int main()
         if(COUNT % out_step == 0)
         {
             ++out_index;
-            outputState(out_index);
+            outputState(CT, out_index);
         }
     }
 
